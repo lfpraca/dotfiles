@@ -11,7 +11,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-;; SECTION Basic
+;;;; Basic
 
 ;; I'm sure
 (scroll-bar-mode -1) ; Disables the scroll bar
@@ -33,10 +33,10 @@
 (setq inhibit-startup-message t) ; Disables starting screen
 (tooltip-mode -1) ; Disables tooltips
 
-;; SECTION Theming
+;;;; Theming
 (load-theme 'doom-one)
 
-;; Section Packages
+;;;; Packages
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
 			 ("org" . "https://orgmode.org/elpa/")
@@ -53,8 +53,13 @@
 (global-undo-tree-mode 1)
 (evil-mode 1)
 
+(require 'disable-mouse)
+(global-disable-mouse-mode)
+(mapc #'disable-mouse-in-keymap (current-active-maps))
+
 (require 'ivy)
 (ivy-mode 1)
+;; (setq ivy-initial-inputs-alist nil)
 
 (require 'counsel)
 (counsel-mode 1)
@@ -74,7 +79,9 @@
 (which-key-mode)
 ;; (diminish 'which-key-mode)
 
-;; Functions
+;; Maybe add "helpful" later
+
+;;;; Functions
 
 (defun bf-pretty-print-xml-region (begin end)
   "Pretty format XML markup in region. You need to have nxml-mode
@@ -89,3 +96,9 @@ by using nxml's indentation rules."
     (while (search-forward-regexp "\>[ \\t]*\<" nil t) 
       (backward-char) (insert "\n") (setq end (1+ end)))
     (indent-region begin end)))
+
+
+;;;; Key bindings
+(global-set-key (kbd "C-x b") 'counsel-ibuffer)
+(global-set-key (kbd "C-x K") 'kill-this-buffer)
+;; (define-key prog-mode-map (kbd "C-/") 'comment-line) ; Breaks undo-tree, figure something out later
