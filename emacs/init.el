@@ -4,7 +4,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" default)))
+   '("02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" default))
+ '(package-selected-packages '(evil general)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -20,14 +21,8 @@
 (set-fringe-mode 10) ; Adds some space to the sides
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ; Makes ESC escape prompts
 
-					; Adds line numbers
 (column-number-mode)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-					; Disables on some modes
-;; (dolist (mode '(org-mode-hook
-;; 		term-mode-hook
-;; 		eshell-mode-hook))
-;;   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 ;; May want to change
 (setq inhibit-startup-message t) ; Disables starting screen
@@ -48,10 +43,20 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(setq evil-undo-system 'undo-tree)
-(require 'evil)
-(global-undo-tree-mode 1)
-(evil-mode 1)
+(setq undo-limit 67108864) ; 64mb.
+(setq undo-strong-limit 100663296) ; 96mb.
+(setq undo-outer-limit 1006632960) ; 960mb.
+(use-package evil ; Run "M-x package-refresh-contents" before evaluating
+  :init
+  (setq evil-undo-system 'undo-fu)
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
+  :config
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join))
+(require 'undo-fu)
 
 (require 'disable-mouse)
 (global-disable-mouse-mode)
@@ -79,7 +84,12 @@
 (which-key-mode)
 ;; (diminish 'which-key-mode)
 
-;; Maybe add "helpful" later
+(require 'helpful)
+(global-set-key (kbd "C-h k") #'helpful-key)
+
+(use-package general ; Run "M-x package-refresh-contents" before evaluating
+  :config
+  (general-evil-setup t))
 
 ;;;; Functions
 
@@ -97,8 +107,13 @@ by using nxml's indentation rules."
       (backward-char) (insert "\n") (setq end (1+ end)))
     (indent-region begin end)))
 
+(defun open-init-file()
+  "Opens the init.el file for editing."
+  (interactive)
+  (find-file "~/.emacs.d/init.el"))
 
 ;;;; Key bindings
 (global-set-key (kbd "C-x b") 'counsel-ibuffer)
 (global-set-key (kbd "C-x K") 'kill-this-buffer)
-;; (define-key prog-mode-map (kbd "C-/") 'comment-line) ; Breaks undo-tree, figure something out later
+(global-set-key (kbd "C-x I") 'open-init-file)
+(define-key prog-mode-map (kbd "C-/") 'comment-line)
