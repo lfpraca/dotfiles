@@ -12,7 +12,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(default ((t (:inherit nil :extend nil :stipple nil :background "#282c34" :foreground "#bbc2cf" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "PfEd" :family "DejaVu Sans Mono")))))
 ;;;; Basic
 
 ;; I'm sure
@@ -23,7 +23,15 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ; Makes ESC escape prompts
 
 (column-number-mode)
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+
+(when (display-graphic-p)
+  (set-fontset-font t 'han (font-spec :family "Yu Gothic" :size 16))
+  (set-fontset-font t 'kana (font-spec :family "Yu Gothic" :size 16)))
+
+;; (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(dolist (mode '(org-mode-hook
+                prog-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode t))))
 
 (setq frame-title-format '("%b - GNU Emacs"))
 
@@ -109,6 +117,8 @@
   :config
   (general-evil-setup t))
 
+(require 'magit)
+
 (require 'projectile)
 (projectile-mode)
 (bind-key "C-c p" 'projectile-command-map)
@@ -117,6 +127,27 @@
 
 (require 'counsel-projectile)
 (counsel-projectile-mode)
+
+(require 'org)
+(setq org-agenda-start-with-log-mode t)
+(setq org-log-done 'time)
+(setq org-log-into-drawer t)
+(setq org-startup-indented t)
+(add-hook 'org-mode-hook 'visual-line-mode)
+(setq org-agenda-files
+      '("~/Documents/org/"))
+
+(require 'org-modern)
+(with-eval-after-load 'org (global-org-modern-mode))
+(setq org-modern-hide-stars nil)
+(setq org-modern-table nil)
+(setq org-modern-checkbox nil)
+
+(require 'fcitx)
+(setq fcitx-use-dbus nil ; fcitx.el doesn't know fcitx5's new dbus interface
+      ;; the command name changed, but the switches and arguments haven't
+      fcitx-remote-command "fcitx5-remote")
+(fcitx-default-setup)
 
 ;; Reference: https://robert.kra.hn/posts/rust-emacs-setup/
 (use-package lsp-mode
@@ -213,4 +244,5 @@ by using nxml's indentation rules."
 (global-set-key (kbd "C-x b") 'counsel-ibuffer)
 (global-set-key (kbd "C-x K") 'kill-this-buffer)
 (global-set-key (kbd "C-x I") 'open-init-file)
+(global-set-key (kbd "C-x A") 'org-agenda-list)
 (define-key prog-mode-map (kbd "C-/") 'comment-line)
