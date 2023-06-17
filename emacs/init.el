@@ -6,7 +6,7 @@
  '(custom-safe-themes
    '("02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" default))
  '(package-selected-packages
-   '(elcord flycheck company lsp-ui lsp-mode rustic evil-collection evil general)))
+   '(dap-mode csproj-mode csharp-mode tree-sitter-indent tree-sitter-langs tree-sitter elcord flycheck company lsp-ui lsp-mode rustic evil-collection evil general)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -21,6 +21,8 @@
 (menu-bar-mode -1) ; Disables the menubar (dropdown qt-style menu)
 (set-fringe-mode 10) ; Adds some space to the sides
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit) ; Makes ESC escape prompts
+(setq make-backup-files nil)
+(setq auto-save-default nil)
 
 (column-number-mode)
 
@@ -30,6 +32,7 @@
 
 ;; (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (dolist (mode '(org-mode-hook
+		restclient-mode-hook
                 prog-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode t))))
 
@@ -48,8 +51,8 @@
 			 ("org" . "https://orgmode.org/elpa/")
 			 ("elpa" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
+;; (unless package-archive-contents
+;;   (package-refresh-contents))
 
 (require 'use-package)
 (setq use-package-always-ensure t)
@@ -149,9 +152,9 @@
       fcitx-remote-command "fcitx5-remote")
 (fcitx-default-setup)
 
+;; LSP
 ;; Reference: https://robert.kra.hn/posts/rust-emacs-setup/
-(use-package lsp-mode
-  :ensure
+(use-package lsp-mode ; Run "M-x package-refresh-contents" before evaluating
   :commands lsp
   :custom
   ;; what to use when checking on-save. "check" is default, I prefer clippy
@@ -169,16 +172,14 @@
   :config
   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
 
-(use-package lsp-ui
-  :ensure
+(use-package lsp-ui ; Run "M-x package-refresh-contents" before evaluating
   :commands lsp-ui-mode
   :custom
   (lsp-ui-peek-always-show t)
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-doc-enable nil))
 
-(use-package company
-  :ensure
+(use-package company ; Run "M-x package-refresh-contents" before evaluating
   :custom
   (company-idle-delay 0) ;; how long to wait until popup
   ;; (company-begin-commands nil) ;; uncomment to disable popup
@@ -189,18 +190,25 @@
 	      ("M-<". company-select-first)
 	      ("M->". company-select-last)))
 
-;; (use-package yasnippet
-;;   :ensure
+;; (use-package yasnippet ; Run "M-x package-refresh-contents" before evaluating
 ;;   :config
 ;;   (yas-reload-all)
 ;;   (add-hook 'prog-mode-hook 'yas-minor-mode)
 ;;   (add-hook 'text-mode-hook 'yas-minor-mode))
 
-(use-package flycheck :ensure)
+(use-package flycheck) ; Run "M-x package-refresh-contents" before evaluating
+
+(use-package tree-sitter) ; Run "M-x package-refresh-contents" before evaluating
+(use-package tree-sitter-langs) ; Run "M-x package-refresh-contents" before evaluating
+(use-package tree-sitter-indent) ; Run "M-x package-refresh-contents" before evaluating
+
+;; DAP
+(use-package dap-mode) ; Run "M-x package-refresh-contents" before evaluating
+(dap-mode 1)
+(dap-ui-mode 1)
 
 ;; Rust Lang
-(use-package rustic
-  :ensure
+(use-package rustic ; Run "M-x package-refresh-contents" before evaluating
   :bind (:map rustic-mode-map
               ("M-j" . lsp-ui-imenu)
               ("M-?" . lsp-find-references)
@@ -218,6 +226,42 @@
 
   ;; comment to disable rustfmt on save
   (setq rustic-format-on-save t))
+
+;; Csharp lang
+(use-package csharp-mode) ; Run "M-x package-refresh-contents" before evaluating
+(add-hook 'csharp-mode-hook #'lsp-deferred)
+
+(use-package csproj-mode) ; Run "M-x package-refresh-contents" before evaluating
+
+(require 'sharper)
+(global-set-key (kbd "C-c n") 'sharper-main-transient)
+
+(defun my-csharp-mode-hook ()
+  "Custom configuration for csharp-mode."
+  (setq-local company-minimum-prefix-length 0))
+(add-hook 'csharp-mode-hook #'my-csharp-mode-hook)
+
+(define-key csharp-mode-map (kbd "C-c C-c a") 'lsp-execute-code-action)
+(define-key csharp-mode-map (kbd "C-c C-c e") 'lsp-treemacs-errors-list)
+
+(require 'dap-netcore)
+(setq dap-netcore-download-url "https://github.com/Samsung/netcoredbg/releases/download/2.2.0-974/netcoredbg-linux-amd64.tar.gz")
+
+;; Web langs
+
+(require 'web-mode)
+(add-to-list 'auto-mode-alist '("\\.cshtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+
+;; Rest Client
+(require 'restclient)
+(add-to-list 'auto-mode-alist '("\\.http\\'" . restclient-mode))
 
 ;;;; Functions
 
