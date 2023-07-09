@@ -6,7 +6,7 @@
  '(custom-safe-themes
    '("02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" default))
  '(package-selected-packages
-   '(dap-mode csproj-mode csharp-mode tree-sitter-indent tree-sitter-langs tree-sitter elcord flycheck company lsp-ui lsp-mode rustic evil-collection evil general)))
+   '(writefreely subed tide typescript-mode vue-mode dap-mode csproj-mode csharp-mode tree-sitter-indent tree-sitter-langs tree-sitter elcord flycheck company lsp-ui lsp-mode rustic evil-collection evil general)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -14,6 +14,8 @@
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :extend nil :stipple nil :background "#282c34" :foreground "#bbc2cf" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "PfEd" :family "DejaVu Sans Mono")))))
 ;;;; Basic
+
+(add-to-list 'load-path (expand-file-name "conf" user-emacs-directory))
 
 ;; I'm sure
 (scroll-bar-mode -1) ; Disables the scroll bar
@@ -33,6 +35,7 @@
 ;; (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (dolist (mode '(org-mode-hook
 		restclient-mode-hook
+		vue-mode-hook
                 prog-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode t))))
 
@@ -49,7 +52,8 @@
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
 			 ("org" . "https://orgmode.org/elpa/")
-			 ("elpa" . "https://elpa.gnu.org/packages/")))
+			 ("elpa" . "https://elpa.gnu.org/packages/")
+			 ("non-gnu elpa" . "https://elpa.nongnu.org/nongnu/")))
 (package-initialize)
 ;; (unless package-archive-contents
 ;;   (package-refresh-contents))
@@ -146,11 +150,53 @@
 (setq org-modern-table nil)
 (setq org-modern-checkbox nil)
 
+(use-package writefreely
+  :after org
+  :config (load-library "writefreely-config.el"))
+
 (require 'fcitx)
 (setq fcitx-use-dbus nil ; fcitx.el doesn't know fcitx5's new dbus interface
       ;; the command name changed, but the switches and arguments haven't
       fcitx-remote-command "fcitx5-remote")
 (fcitx-default-setup)
+
+(require 'mu4e)
+(setq mu4e-change-filenames-when-moving t)
+(setq mu4e-update-interval (* 5 60))
+(setq mu4e-get-mail-command "mbsync -a")
+(setq mu4e-maildir "~/.mail/gmail")
+(setq mu4e-drafts-folder "/[Gmail]/Drafts")
+(setq mu4e-sent-folder "/[Gmail]/Sent Mail")
+(setq mu4e-refile-folder "/[Gmail]/All Mail")
+(setq mu4e-trash-folder "/[Gmail]/Trash")
+(setq mu4e-maildir-shortcuts
+      '(("/Inbox" . ?i)
+	("/[Gmail]/Sent Mail" . ?s)
+	("/[Gmail]/Drafts" . ?d)
+	("/[Gmail]/Trash" . ?t)
+	("/[Gmail]/All Mail" . ?a)))
+
+(use-package subed
+  :ensure t
+  :config
+  ;; Remember cursor position between sessions
+  ;; (add-hook 'subed-mode-hook 'save-place-local-mode)
+  ;; Break lines automatically while typing
+  ;; (add-hook 'subed-mode-hook 'turn-on-auto-fill)
+  ;; Break lines at 40 characters
+  ;; (add-hook 'subed-mode-hook (lambda () (setq-local fill-column 40)))
+  ;; Some reasonable defaults
+  (add-hook 'subed-mode-hook 'subed-enable-pause-while-typing)
+  ;; As the player moves, update the point to show the current subtitle
+  (add-hook 'subed-mode-hook 'subed-enable-sync-point-to-player)
+  ;; As your point moves in Emacs, update the player to start at the current subtitle
+  (add-hook 'subed-mode-hook 'subed-enable-sync-player-to-point)
+  ;; Replay subtitles as you adjust their start or stop time with M-[, M-], M-{, or M-}
+  (add-hook 'subed-mode-hook 'subed-enable-replay-adjusted-subtitle)
+  ;; Loop over subtitles
+  (add-hook 'subed-mode-hook 'subed-enable-loop-over-current-subtitle)
+  ;; Show characters per second
+  (add-hook 'subed-mode-hook 'subed-enable-show-cps))
 
 ;; LSP
 ;; Reference: https://robert.kra.hn/posts/rust-emacs-setup/
@@ -263,6 +309,41 @@
 (require 'restclient)
 (add-to-list 'auto-mode-alist '("\\.http\\'" . restclient-mode))
 
+;; Vue framework
+
+(use-package vue-mode
+  :mode "\\.vue\\'"
+  :config
+  (add-hook 'vue-mode-hook #'lsp))
+
+;; TypeScript Lang
+
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  (company-mode +1))
+
+;; aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
+
+;; formats the buffer before saving
+(add-hook 'before-save-hook 'tide-format-before-save)
+
+(add-hook 'typescript-mode-hook #'lsp)
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+(use-package typescript-mode)
+
+(use-package tide
+  :after (typescript-mode company flycheck)
+  :hook ((typescript-mode . tide-setup)
+         (typescript-mode . tide-hl-identifier-mode)
+         (before-save . tide-format-before-save)))
+
 ;;;; Functions
 
 (defun bf-pretty-print-xml-region (begin end)
@@ -289,4 +370,5 @@ by using nxml's indentation rules."
 (global-set-key (kbd "C-x K") 'kill-this-buffer)
 (global-set-key (kbd "C-x I") 'open-init-file)
 (global-set-key (kbd "C-x A") 'org-agenda-list)
+(global-unset-key (kbd "C-x C-c"))
 (define-key prog-mode-map (kbd "C-/") 'comment-line)
