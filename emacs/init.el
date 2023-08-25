@@ -346,6 +346,14 @@
          (typescript-mode . tide-hl-identifier-mode)
          (before-save . tide-format-before-save)))
 
+;; Haskell Lang
+
+(require 'haskell-mode)
+
+;; Ebuild Lang
+
+(require 'ebuild-mode)
+
 ;;;; Functions
 
 (defun bf-pretty-print-xml-region (begin end)
