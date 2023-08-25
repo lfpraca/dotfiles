@@ -19,6 +19,7 @@ exec --no-startup-id ~/.screenlayout.sh; ~/.fehbg; ~/.config/polybar/launch.sh; 
 exec --no-startup-id fcitx5
 exec --no-startup-id keepassxc
 exec --no-startup-id syncthing
+exec --no-startup-id xsetwacom --set "Wacom One by Wacom S Pen stylus" MapToOutput HEAD-0; xsetwacom --set "Wacom One by Wacom S Pen stylus" Area 0 475 15200 9025
 
 # Border style
 default_border pixel 2
