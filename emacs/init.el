@@ -411,5 +411,7 @@ by using nxml's indentation rules."
 (global-set-key (kbd "C-x K") 'kill-this-buffer)
 (global-set-key (kbd "C-x I") 'open-init-file)
 (global-set-key (kbd "C-x A") 'org-agenda-list)
+(global-set-key (kbd "M-<up>") 'scroll-down-line)
+(global-set-key (kbd "M-<down>") 'scroll-up-line)
 (global-unset-key (kbd "C-x C-c"))
 (define-key prog-mode-map (kbd "C-/") 'comment-line)
