@@ -380,6 +380,11 @@
 
 (require 'ebuild-mode)
 
+;; Cpp Lang
+
+(setq-default c-basic-offset 4)
+(add-hook 'c++-mode-hook 'lsp)
+
 ;;;; Functions
 
 (defun bf-pretty-print-xml-region (begin end)
