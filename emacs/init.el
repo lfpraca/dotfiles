@@ -41,6 +41,7 @@
 
 (setq frame-title-format '("%b - GNU Emacs"))
 
+(add-to-list 'default-frame-alist '(alpha-background . 85))
 ;; May want to change
 (setq inhibit-startup-message t) ; Disables starting screen
 (tooltip-mode -1) ; Disables tooltips
