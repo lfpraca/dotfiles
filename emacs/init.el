@@ -245,14 +245,25 @@
 
 (use-package flycheck) ; Run "M-x package-refresh-contents" before evaluating
 
-(use-package tree-sitter) ; Run "M-x package-refresh-contents" before evaluating
-(use-package tree-sitter-langs) ; Run "M-x package-refresh-contents" before evaluating
-(use-package tree-sitter-indent) ; Run "M-x package-refresh-contents" before evaluating
+;; (use-package tree-sitter) ; Run "M-x package-refresh-contents" before evaluating
+;; (use-package tree-sitter-langs) ; Run "M-x package-refresh-contents" before evaluating
+;; (use-package tree-sitter-indent) ; Run "M-x package-refresh-contents" before evaluating
 
 ;; DAP
-(use-package dap-mode) ; Run "M-x package-refresh-contents" before evaluating
+(use-package dap-mode
+  :custom
+  (dap-auto-configure-features '(locals breakpoints expressions tooltip))) ; Run "M-x package-refresh-contents" before evaluating
 (dap-mode 1)
 (dap-ui-mode 1)
+
+(require 'dap-gdb-lldb)
+
+(define-key dap-mode-map (kbd "C-c d b") 'dap-breakpoint-toggle)
+(define-key dap-mode-map (kbd "C-c d e") 'dap-debug)
+(define-key dap-mode-map (kbd "C-c d d") 'dap-hydra)
+(define-key dap-mode-map (kbd "C-c d l") 'dap-debug-last)
+(define-key dap-mode-map (kbd "C-c d c") 'dap-continue)
+(define-key dap-mode-map (kbd "C-c d C-d") 'dap-disconnect)
 
 ;; Rust Lang
 (use-package rustic ; Run "M-x package-refresh-contents" before evaluating
@@ -274,9 +285,17 @@
   ;; comment to disable rustfmt on save
   (setq rustic-format-on-save t))
 
+(dap-register-debug-template "Rust::GDB Run Configuration"
+                             (list :type "gdb"
+                                   :request "launch"
+                                   :name "GDB::Run"
+				   :gdbpath "rust-gdb"
+                                   :target nil
+                                   :cwd nil))
+
 ;; Csharp lang
-(use-package csharp-mode) ; Run "M-x package-refresh-contents" before evaluating
-(add-hook 'csharp-mode-hook #'lsp-deferred)
+(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
+(add-hook 'csharp-mode-hook #'lsp)
 
 (use-package csproj-mode) ; Run "M-x package-refresh-contents" before evaluating
 
@@ -288,8 +307,8 @@
   (setq-local company-minimum-prefix-length 0))
 (add-hook 'csharp-mode-hook #'my-csharp-mode-hook)
 
-(define-key csharp-mode-map (kbd "C-c C-c a") 'lsp-execute-code-action)
-(define-key csharp-mode-map (kbd "C-c C-c e") 'lsp-treemacs-errors-list)
+;; (define-key csharp-mode-map (kbd "C-c C-c a") 'lsp-execute-code-action)
+;; (define-key csharp-mode-map (kbd "C-c C-c e") 'lsp-treemacs-errors-list)
 
 (require 'dap-netcore)
 (setq dap-netcore-download-url "https://github.com/Samsung/netcoredbg/releases/download/2.2.0-974/netcoredbg-linux-amd64.tar.gz")
@@ -319,7 +338,11 @@
 
 ;; TypeScript Lang
 
-(setq typescript-indent-level 2)
+;; (setq typescript-indent-level 2)
+(setq typescript-ts-mode-indent-offset 4)
+
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode))
 
 (defun setup-tide-mode ()
   (interactive)
@@ -336,15 +359,17 @@
 ;; formats the buffer before saving
 (add-hook 'before-save-hook 'tide-format-before-save)
 
-(add-hook 'typescript-mode-hook #'lsp)
-(add-hook 'typescript-mode-hook #'setup-tide-mode)
-
-(use-package typescript-mode)
+(add-hook 'typescript-ts-mode-hook #'lsp)
+(add-hook 'typescript-ts-mode-hook #'setup-tide-mode)
+(add-hook 'tsx-ts-mode-hook #'lsp)
+(add-hook 'tsx-ts-mode-hook #'setup-tide-mode)
 
 (use-package tide
-  :after (typescript-mode company flycheck)
-  :hook ((typescript-mode . tide-setup)
-         (typescript-mode . tide-hl-identifier-mode)
+  :after (company flycheck)
+  :hook ((typescript-ts-mode . tide-setup)
+         (typescript-ts-mode . tide-hl-identifier-mode)
+	 (tsx-ts-mode . tide-setup)
+         (tsx-ts-mode . tide-hl-identifier-mode)
          (before-save . tide-format-before-save)))
 
 ;; Haskell Lang
